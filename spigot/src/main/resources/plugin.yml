@@ -1,0 +1,57 @@
+name: Cundannatu
+description: ${description}
+prefix: LORENZ-DEV
+version: '${version}'
+
+main: dev.lorenzzz.cundannatu.spigot.JailMiningPlugin
+api-version: '1.21'
+
+authors: [ Lorenzzzzzz ]
+website: https://lorenzzzz.xyz
+
+softdepend: [ LiteBans ]
+
+# I comandi sono registrati a runtime da ACF (PaperCommandManager):
+# /jail, /jailinfo, /jailhelp, /jailadmin, /jailmining
+permissions:
+  jailmining.admin:
+    description: Accesso ai comandi amministrativi
+    default: op
+    children:
+      jailmining.admin.jail: true
+      jailmining.admin.reload: true
+      jailmining.admin.resetdb: true
+      jailmining.admin.free: true
+      jailmining.admin.pickaxe: true
+  jailmining.admin.jail:
+    description: Permette di incarcerare un giocatore
+    default: op
+  jailmining.admin.reload:
+    description: Permette di ricaricare la configurazione
+    default: op
+  jailmining.admin.resetdb:
+    description: Permette di svuotare la tabella jailed_players
+    default: op
+  jailmining.admin.free:
+    description: Permette di liberare un detenuto
+    default: op
+  jailmining.admin.pickaxe:
+    description: Permette di riconsegnare il piccone del detenuto
+    default: op
+  jailmining.player.info:
+    description: Permette di consultare il proprio stato di detenzione
+    default: true
+  jailmining.staff:
+    description: Ignora il ban ed entra normalmente (niente redirect in prigione)
+    default: op
+    children:
+      jailmining.bypass: true
+  jailmining.bypass:
+    description: Ignora la whitelist dei comandi e le restrizioni della prigione
+    default: op
+  jailmining.alerts:
+    description: Riceve gli avvisi anti fast-break
+    default: op
+  jailmining.chat.color:
+    description: Consente i codici colore nei messaggi in chat
+    default: op

@@ -1,0 +1,102 @@
+# ==========================================================
+#  CommandWhitelist - configurazione per il SERVER JAIL
+#  (plugins/CommandWhitelist/config.yml del server "jail")
+#
+#  Il gruppo "default" vale per tutti: su questo server ci sono solo
+#  detenuti, quindi contiene esattamente i comandi ammessi in prigione.
+#  Lo staff usa il gruppo "staff" (permesso commandwhitelist.group.staff)
+#  oppure il bypass del plugin.
+#
+#  ATTENZIONE: non rimettere qui tpa/tpahere/tpaccept/spawn/warp/home.
+#  Sono vie di fuga dalla miniera: il detenuto uscirebbe dall area di
+#  scavo e smetterebbe di scontare la pena lavorando.
+# ==========================================================
+
+# Messages use MiniMessage formatting (https://docs.adventure.kyori.net/minimessage/format)
+messages:
+  prefix: '<dark_red>Prigione <dark_gray>» '
+  command_denied: "<red>Comando non disponibile in prigione. <gray>Scrivi <white>/jailhelp <gray>per sapere come uscire."
+  subcommand_denied: "<red>Non puoi usare questo sottocomando in prigione."
+  no_permission: "<red>Non hai il permesso per farlo."
+  no_such_subcommand: "<red>Nessun sottocomando con quel nome."
+  config_reloaded: "<yellow>Configurazione ricaricata."
+  added_to_whitelist: "<yellow>Comando <gold>%s <yellow>consentito al permesso <gold>%s"
+  removed_from_whitelist: "<yellow>Comando <gold>%s <yellow>rimosso dal permesso <gold>%s"
+  group_doesnt_exist: "<red>Gruppo inesistente o errore."
+
+# Do not enable if you don't have issues with aliased commands.
+# This requires server restart to take effect.
+# Consigliato true sul server jail: senza, gli alias (/minecraft:tp, /essentials:spawn)
+# possono aggirare la whitelist. Richiede ProtocolLib e un riavvio.
+use_protocollib: true
+
+# Valid message types are CHAT and ACTIONBAR. Does nothing on velocity.
+message_type: CHAT
+
+groups:
+  # ------------------------------------------------------
+  #  DETENUTI - vale per chiunque non sia staff
+  # ------------------------------------------------------
+  default:
+    commands:
+      # Capire cosa e' successo e come uscire (comandi del plugin Cundannatu)
+      - jailhelp
+      - perche
+      - banhelp
+      - comefunziona
+      - jailinfo
+      # Comunicazione
+      - msg
+      - m
+      - w
+      - tell
+      - r
+      - reply
+      - ignore
+      # Informazioni generali
+      - help
+      - rules
+      - regole
+      - discord
+      - store
+      - ping
+      - list
+      - online
+    subcommands:
+      - help about
+
+  # ------------------------------------------------------
+  #  STAFF - permesso commandwhitelist.group.staff
+  #  (in aggiunta a quelli sopra)
+  # ------------------------------------------------------
+  staff:
+    commands:
+      - jail
+      - jailadmin
+      - ja
+      - jailmining
+      - jm
+      - unban
+      - ltunban
+      - ban
+      - tempban
+      - kick
+      - mute
+      - tp
+      - tphere
+      - teleport
+      - gamemode
+      - gm
+      - god
+      - vanish
+      - v
+      - spawn
+      - world
+      - plugins
+      - pl
+    subcommands:
+      - jailadmin reload
+      - jailadmin resetdb
+      - jailadmin status
+      - jailadmin free
+      - jailadmin pickaxe

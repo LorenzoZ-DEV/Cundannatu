@@ -1,0 +1,29 @@
+# ==========================================================
+#  JailMining - configurazione MySQL / HikariCP
+#  Tutti i parametri del pool sono modificabili a caldo
+#  con /jailadmin reload (il pool viene rigenerato).
+# ==========================================================
+database:
+  host: "localhost"
+  port: 3306
+  database: "minecraft"
+  username: "root"
+  password: "password"
+
+  # Numero massimo di connessioni del pool
+  max-pool-size: 10
+
+  # Connessioni sempre pronte
+  min-idle: 5
+
+  # Vita massima di una connessione (30 minuti)
+  max-lifetime: 1800000
+
+  # Tempo di inattivita prima della chiusura (10 minuti)
+  idle-timeout: 600000
+
+  # Timeout di attesa per ottenere una connessione (30 secondi)
+  connection-timeout: 30000
+
+  # Soglia di rilevamento leak (15 secondi)
+  leak-detection-threshold: 15000

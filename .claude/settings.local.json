@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(.\\\\gradlew.bat :spigot:compileJava --console=plain -q)",
+      "PowerShell(.\\\\gradlew.bat :spigot:compileJava --rerun-tasks --console=plain -q -Dorg.gradle.jvmargs=\"-Xmx1g\" --no-daemon 2>&1 | Select-Object -First 5; \"\")",
+      "Bash(./gradlew :spigot:compileJava --rerun-tasks --console=plain -q)",
+      "Bash(./gradlew build *)",
+      "Bash(python -c ' *)",
+      "Bash(unzip -p spigot/build/libs/Cundannatu-1.0-SNAPSHOT.jar config.yml)",
+      "Bash(./gradlew :spigot:compileJava --console=plain -q)",
+      "Bash(find 'C:\\\\Users\\\\lorenzz/.gradle/caches/modules-2/files-2.1/org.yaml/snakeyaml' -name snakeyaml-2*.jar ! -name *sources*)",
+      "Bash(find 'C:\\\\Users\\\\lorenzz/.gradle/caches/modules-2/files-2.1/com.google.guava' -name guava-3*.jar ! -name *sources*)",
+      "Bash(java -cp '.;__TRACKED_VAR__' MergeTest C:/Users/lorenzz/IdeaProjects/Cundannatu/spigot/src/main/resources/config.yml)",
+      "Bash(javac -d . UnbanCmdTest.java)",
+      "Bash(java -cp . UnbanCmdTest)",
+      "Bash(python -)",
+      "Bash(javac -d . GuardTest.java)",
+      "Bash(java -cp . GuardTest)",
+      "Bash(java -cp '.;__TRACKED_VAR__' MiniTest)",
+      "Bash(unzip -l spigot/build/libs/Cundannatu-1.0-SNAPSHOT.jar)",
+      "Read(//tmp/**)",
+      "Bash(javap -p -c \"fr/mrmicky/fastboard/adventure/FastBoard.class\")",
+      "Bash(java -Dfile.encoding=UTF-8 -cp '.;__TRACKED_VAR__' ReparseTest)",
+      "PowerShell(.\\\\gradlew.bat --offline --console=plain -q compileJava :proxy:compileJava :spigot:compileJava)"
+    ]
+  }
+}

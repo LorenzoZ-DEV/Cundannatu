@@ -1,0 +1,432 @@
+# ==========================================================
+#  Cundannatu / JailMining - configurazione principale
+#  Server jail: "jail"
+#
+#  FORMATTAZIONE DEL TESTO - due sintassi accettate, riconosciute da sole:
+#
+#   1) legacy:      &c &l &n ... e gli esadecimali &#RRGGBB
+#   2) MiniMessage: <red>, <bold>, <gradient:#ff0000:#ffaa00>, <rainbow>,
+#                   <click:open_url:'https://...'>, <hover:show_text:'...'>
+#
+#  Una riga viene letta come MiniMessage solo se contiene un tag <...>,
+#  quindi le configurazioni gia' scritte con & continuano a funzionare.
+#  Non mischiare le due sintassi nella stessa riga.
+#
+#  Esempi:
+#    ban-time-remaining: "<red>Tempo residuo: <white>{time}"
+#    title: "<gradient:#ff0000:#ffaa00><bold>PRIGIONE</bold></gradient>"
+#
+#  Nota: click e hover funzionano nei messaggi in chat; su scoreboard, tab,
+#  lore del piccone e nomi in lista restano solo colori e stili.
+#
+#  Placeholder disponibili ovunque:
+#    {player} {displayname} {server} {world}
+#    {online} {max_players} {ping} {required}
+#  Placeholder della pena (per chi non e' detenuto valgono
+#  i valori neutri di messages.no-sentence-*):
+#    {time} {credits} {reason} {progress} {missing} {bar}
+# ==========================================================
+jail-mining:
+  # Interruttore generale del sistema
+  enabled: true
+
+  # Nome del server jail cosi come registrato in velocity.toml
+  jail-server-name: "jail"
+
+  # Punto di spawn della prigione
+  spawn-location:
+    world: "world"
+    x: 0
+    y: 64
+    z: 0
+    yaw: 0
+    pitch: 0
+
+  # Secondi di ban tolti per ogni blocco di carbone rotto
+  carbone-reduction-seconds: 3
+
+  # Blocchi di carbone da scavare per maturare i crediti.
+  # I jail credits sono volutamente difficili: con 500 servono 500 blocchi
+  # per ottenere i crediti indicati sotto.
+  blocks-per-credit: 500
+
+  # Crediti assegnati ogni volta che si completa la soglia qui sopra
+  credits-per-coal-block: 1
+
+  # Crediti necessari per ottenere la liberta.
+  # Blocchi totali richiesti = blocks-per-credit x credits-required-for-freedom
+  #                          / credits-per-coal-block
+  credits-required-for-freedom: 50
+
+  # Durata assegnata ai ban permanenti (in anni)
+  permanent-ban-start-years: 10
+
+  # --------------------------------------------------------
+  #  SBAN A PENA SCONTATA
+  #  Comando eseguito dalla console quando il detenuto viene liberato
+  #  (tempo esaurito, crediti raggiunti o /jailadmin free).
+  #  Placeholder: {player} = nome, {uuid} = uuid, {reason} = motivo sotto.
+  #  Se LiteBans sta solo sul proxy, lo stesso comando viene eseguito li'.
+  # --------------------------------------------------------
+  unban:
+    command: "unban {player} -s"
+    reason: "Pena scontata con il jail mining"
+
+  # In prigione si puo' rompere/piazzare soltanto il carbone:
+  # ogni altro blocco rotto o piazzato viene annullato
+  only-coal-mining: true
+
+  # --------------------------------------------------------
+  #  DIVIETI IN PRIGIONE
+  # --------------------------------------------------------
+  protection:
+    # Annulla il PvP (corpo a corpo, proiettili e pozioni negative)
+    disable-pvp: true
+    # false = si blocca solo se almeno uno dei due sta scontando una pena
+    # true  = niente PvP per nessuno su questo server
+    include-free-players: false
+    # I detenuti non subiscono danno: niente morte per caduta, mob, lava o fuoco.
+    # Chi cade nel vuoto viene riportato allo spawn della prigione.
+    disable-damage: true
+    # La barra della fame dei detenuti resta piena
+    disable-hunger: true
+
+  # --------------------------------------------------------
+  #  CONTO ALLA ROVESCIA DELLA PENA
+  #  Il tempo residuo cala da solo mentre il detenuto e' online, cosi la
+  #  scoreboard non resta ferma sui ban temporanei. I ban permanenti
+  #  (durata >= permanent-ban-start-years) restano fermi: si esce solo scavando.
+  # --------------------------------------------------------
+  sentence-timer:
+    enabled: true
+    # Ogni quanti tick scalare il tempo (20 tick = 1 secondo)
+    interval-ticks: 20
+    # Ogni quanti secondi salvare i progressi su MySQL
+    flush-interval-seconds: 30
+
+  # --------------------------------------------------------
+  #  USCITA DALLA PRIGIONE
+  # --------------------------------------------------------
+  release:
+    # Espulsione dal server jail dopo la liberazione (il giocatore rientra dal lobby)
+    kick-on-time-served: true
+    kick-on-pardon: true
+    # Con i crediti si resta in gioco e si viene teletrasportati allo spawn
+    kick-on-credits: false
+
+    # Controllo degli sban decisi fuori dal plugin: staff con /unban, acquisto
+    # sullo store o appeal accolto. Richiede LiteBans sul server jail; se LiteBans
+    # sta solo sul proxy ci pensa il proxy a notificarlo sul canale jailmining:data.
+    watchdog:
+      enabled: true
+      check-interval-seconds: 10
+
+  # --------------------------------------------------------
+  #  ANTI FAST-BREAK
+  #  Non sostituisce un anticheat (Grim, LightningGrim...): controlla solo il
+  #  ritmo di scavo, che e' il modo piu' comodo per macinare pena con il cheat.
+  # --------------------------------------------------------
+  anti-cheat:
+    enabled: true
+    # Millisecondi minimi fra due blocchi: sotto questa soglia il colpo e' sospetto
+    min-break-interval-ms: 120
+    # Finestra di controllo e massimo numero di blocchi al suo interno
+    window-seconds: 5
+    max-blocks-per-window: 40
+    # Violazioni tollerate prima della penalita' (margine per lag e ping alto)
+    violations-before-penalty: 3
+    # Secondi aggiunti alla pena ad ogni penalita'
+    penalty-seconds: 60
+    # Intervallo minimo fra due penalita' allo stesso giocatore: senza questo freno
+    # un client con nuke accumulerebbe decine di minuti in pochi secondi
+    penalty-cooldown-seconds: 5
+
+    # Messaggio mostrato al giocatore ({penalty} = secondi aggiunti)
+    alert:
+      - "&4&m----------------------------------"
+      - "&c&l⚠ STAI CERCANDO DI BARARE?"
+      - "&7Qui non funziona cosi: scavare a quella velocita'"
+      - "&7non e' umanamente possibile."
+      - "&cPena aumentata di &f{penalty} secondi&c."
+      - "&7Residuo ora: &f{time}"
+      - "&4&m----------------------------------"
+
+    # Avviso agli staffer con permesso jailmining.alerts ("" per disattivarlo)
+    staff-alert: "&8[&cAntiCheat&8] &f{player} &7fast-break rilevato &8- &7pena +{penalty}s"
+
+  # Blocchi che contano come "carbone" e riducono la pena
+  coal-blocks:
+    - "COAL_ORE"
+    - "DEEPSLATE_COAL_ORE"
+
+  # --------------------------------------------------------
+  #  PICCONE DEL DETENUTO
+  # --------------------------------------------------------
+  pickaxe:
+    enabled: true
+    # Consegnato automaticamente all ingresso in prigione
+    give-on-join: true
+    material: "IRON_PICKAXE"
+    name: "&e&l⛏ Piccone del detenuto"
+    lore:
+      - "&7Scava &8coal_ore &7per ridurre la pena."
+      - "&7Ogni blocco toglie &a{seconds}s &7alla pena."
+      - "&7Un &bjail credit &7ogni &f{blocks_per_credit} &7blocchi."
+      - ""
+      - "&8Proprieta' della prigione di {server}"
+    unbreakable: true
+    # Livello di Efficienza (0 = nessun incantesimo)
+    efficiency: 2
+    # Slot della hotbar in cui posizionarlo (0-8, -1 = primo slot libero)
+    slot: 0
+    # Impedisce di buttare via il piccone
+    prevent-drop: true
+    # Impedisce di spostarlo/rimuoverlo dall inventario
+    prevent-move: true
+
+  # --------------------------------------------------------
+  #  RIGENERAZIONE DEL CARBONE
+  #  Il blocco rotto viene sostituito e ritorna dopo il ritardo
+  # --------------------------------------------------------
+  ore-regen:
+    enabled: true
+    # Secondi prima che il carbone ricompaia
+    delay-seconds: 5
+    # Blocco mostrato durante l attesa
+    replacement-block: "STONE"
+    # Se true il carbone rotto droppa anche gli item
+    drop-items: false
+
+  # Particelle mostrate alla rottura del carbone
+  particles:
+    on-break: "REDSTONE"
+    color: "FF0000"
+
+  # Suoni riprodotti dal sistema
+  sounds:
+    on-break: "BLOCK_STONE_BREAK"
+    on-freedom: "ENTITY_PLAYER_LEVELUP"
+    # Riprodotto quando matura un jail credit (evento raro)
+    on-credit: "ENTITY_EXPERIENCE_ORB_PICKUP"
+    # Riprodotto quando scatta la penalita' anti fast-break
+    on-cheat: "ENTITY_VILLAGER_NO"
+
+  # Comandi utilizzabili durante la detenzione (tutti gli altri sono bloccati).
+  # /jailinfo e /jailhelp sono sempre consentiti, anche se non elencati qui.
+  #
+  # NON aggiungere /tpa, /tpahere, /spawn, /warp o /home: sono vie di fuga
+  # dalla miniera e permettono di lasciare l area di scavo.
+  # Questa lista va tenuta allineata al gruppo "default" di CommandWhitelist
+  # (vedi docs/commandwhitelist-jail.yml).
+  allowed-commands:
+    - "/help"
+    - "/jailhelp"
+    - "/jailinfo"
+    - "/msg"
+    - "/m"
+    - "/w"
+    - "/tell"
+    - "/r"
+    - "/reply"
+    - "/rules"
+    - "/regole"
+    - "/discord"
+    - "/store"
+    - "/ping"
+    - "/list"
+
+  # --------------------------------------------------------
+  #  SCOREBOARD (FastBoard)
+  # --------------------------------------------------------
+  scoreboard:
+    enabled: true
+    # Ogni quanti tick la sidebar viene aggiornata (20 tick = 1 secondo)
+    update-interval-ticks: 20
+    # Barra di progresso usata dal placeholder {bar}
+    progress-bar:
+      length: 20
+      symbol: "|"
+      filled-color: "&a"
+      empty-color: "&8"
+
+    # Sidebar mostrata a chi sta scontando una pena
+    jailed:
+      title: "&4&lPRIGIONE"
+      lines:
+        - "&7Motivo:"
+        - "&f{reason}"
+        - ""
+        - "&cTempo residuo: &f{time}"
+        - "&bCrediti: &f{credits}&7/&f{required}"
+        - "{bar}"
+        - ""
+        - "&7Blocchi scavati: &f{blocks}"
+        - "&7Prossimo credito: &f-{blocks_to_credit}"
+        - "{credit_bar}"
+        - " "
+        - "&8{server}"
+
+    # Sidebar mostrata a chi NON e' coinvolto in nessuna pena
+    not-jailed:
+      # false = nessuna sidebar per i giocatori liberi
+      enabled: true
+      title: "&2&lLIBERO"
+      lines:
+        - ""
+        - "&aNon sei coinvolto in nessuna pena"
+        - ""
+        - "&7Giocatore: &f{player}"
+        - "&7Online: &f{online}&7/&f{max_players}"
+        - " "
+        - "&8{server}"
+
+  # --------------------------------------------------------
+  #  TAB LIST (header, footer e nome nella lista)
+  # --------------------------------------------------------
+  tab:
+    enabled: true
+    # Ogni quanti tick header/footer vengono riscritti
+    update-interval-ticks: 40
+
+    jailed:
+      header:
+        - "&4&lPRIGIONE DI {server}"
+        - "&7Stai scontando la tua pena"
+        - ""
+      footer:
+        - ""
+        - "&cResiduo: &f{time} &8| &bCrediti: &f{credits}&7/&f{required}"
+        - "&7Blocchi: &f{blocks} &8| &7Prossimo credito tra &f{blocks_to_credit}"
+        - "&7Ping: &f{ping}ms &8| &7Online: &f{online}"
+      # Nome mostrato nella lista dei giocatori ("" = invariato)
+      player-list-name: "&c⛏ &f{player}"
+
+    not-jailed:
+      header:
+        - "&2&l{server}"
+        - "&aNon sei coinvolto in nessuna pena"
+        - ""
+      footer:
+        - ""
+        - "&7Ping: &f{ping}ms &8| &7Online: &f{online}&7/&f{max_players}"
+      player-list-name: "&a{player}"
+
+  # --------------------------------------------------------
+  #  CHAT
+  # --------------------------------------------------------
+  chat:
+    enabled: true
+    # {message} = testo scritto dal giocatore
+    format-jailed: "&8[&4Detenuto&8] &c{player} &8» &7{message}"
+    format-free: "&8[&2Libero&8] &a{player} &8» &f{message}"
+    # Impedisce ai detenuti di scrivere in chat
+    mute-jailed: false
+    mute-message: "&cNon puoi parlare mentre sconti la pena."
+    # Consente i codici colore dentro al messaggio (serve jailmining.chat.color)
+    allow-color-codes: false
+
+  # --------------------------------------------------------
+  #  MESSAGGI DI ENTRATA E USCITA
+  #  Sostituiscono il "player joined the game" di default
+  # --------------------------------------------------------
+  join-quit:
+    enabled: true
+    join-jailed: "&8[&c+&8] &7Il prigioniero &c{player} &7e' entrato a scontare la sua pena"
+    join-free: "&8[&a+&8] &a{player} &7e' entrato nel server"
+    quit-jailed: "&8[&c-&8] &7Il prigioniero &c{player} &7ha lasciato la prigione"
+    quit-free: "&8[&c-&8] &a{player} &7ha lasciato il server"
+    # Messaggio di benvenuto privato al detenuto (lista vuota = disattivato)
+    welcome-jailed:
+      - "&4&m----------------------------------"
+      - "&cSei detenuto nel server &e{server}"
+      - "&7Motivo: &f{reason}"
+      - "&cTempo residuo: &f{time}"
+      - "&bCrediti: &f{credits}&7/&f{required}"
+      - "&7Scava &8coal_ore &7per ridurre la pena."
+      - "&7Scrivi &f/jailhelp &7per capire cosa e' successo e come uscirne."
+      - "&4&m----------------------------------"
+
+  # --------------------------------------------------------
+  #  /jailhelp - spiega cosa e' successo e come uscirne
+  #  Alias: /perche, /banhelp, /comefunziona
+  # --------------------------------------------------------
+  help:
+    enabled: true
+
+    # Testo mostrato a chi sta scontando una pena
+    jailed:
+      - "&4&m----------------------------------"
+      - "&c&lSEI STATO BANNATO"
+      - "&7Motivo: &f{reason}"
+      - "&7Pena residua: &f{time}"
+      - ""
+      - "&e&lCOME FUNZIONA LA PRIGIONE"
+      - "&7Invece di aspettare, puoi scontare il ban giocando."
+      - "&7Usa il &e⛏ Piccone del detenuto &7sul &8coal_ore&7:"
+      - "&8 • &7ogni blocco toglie &a{seconds} secondi &7alla pena"
+      - "&8 • &7ogni &f{blocks_per_credit} blocchi &7ottieni &b+{credits_per_threshold} jail credit"
+      - "&8 • &7con &b{required} crediti &7sei libero (i crediti sono rari!)"
+      - "&8 • &7il carbone si rigenera da solo, non finisce mai"
+      - "&7Hai scavato &f{blocks} &7blocchi: &b{credits}&7/&b{required} crediti"
+      - "&7Prossimo credito tra &f{blocks_to_credit} &7blocchi"
+      - ""
+      - "&e&lNON VUOI SCAVARE?"
+      - "&7Puoi acquistare lo sban oppure fare appello al ban:"
+
+    # Testo mostrato a chi non e' coinvolto in nessuna pena
+    not-jailed:
+      - "&2&m----------------------------------"
+      - "&a&lNON SEI COINVOLTO IN NESSUNA PENA"
+      - "&7Questa e' la modalita' prigione di &f{server}&7."
+      - "&7Chi viene bannato finisce qui e puo' scontare la pena scavando"
+      - "&8coal_ore&7: &a-{seconds}s &7per blocco e &b+{credits_per_threshold} jail credit"
+      - "&7ogni &f{blocks_per_credit} &7blocchi."
+      - "&7In alternativa puo' acquistare lo sban o fare appello."
+      - "&2&m----------------------------------"
+
+    # Se true i pulsanti sotto vengono mostrati solo a chi e' bannato
+    buttons-jailed-only: true
+
+    # Pulsanti cliccabili: text = etichetta, url = link aperto al click, hover = suggerimento.
+    # In alternativa si puo' scrivere tutto in MiniMessage dentro le righe di testo:
+    #   "<click:open_url:'https://store.venrixmc.uk'><green><bold>[ ACQUISTA ]</bold></green></click>"
+    buttons:
+      - text: "  &a&l[ ACQUISTA LO SBAN ]"
+        url: "https://store.venrixmc.uk"
+        hover: "&7Apri lo store: &fstore.venrixmc.uk"
+      - text: "  &e&l[ FAI APPELLO AL BAN ]"
+        url: "https://hub.venrixmc.uk/ban-appeals"
+        hover: "&7Invia il tuo appeal: &fhub.venrixmc.uk/ban-appeals"
+
+  # --------------------------------------------------------
+  #  ACTION BAR
+  # --------------------------------------------------------
+  action-bar:
+    enabled: true
+    # Ogni quanti tick viene riscritta
+    interval-ticks: 40
+
+  # Messaggi: {time} = tempo residuo, {credits} = crediti attuali
+  messages:
+    action-bar: "&c⚒ &7-{seconds}s per blocco &8| &bProssimo credito tra &f{blocks_to_credit} &7blocchi"
+    freedom-achieved: "&a✓ Hai guadagnato la libertà!"
+    # Pena arrivata a zero
+    freedom-time-served: "&a✓ Hai scontato tutta la tua pena, sei libero!"
+    # Ban rimosso dall esterno: staff, acquisto sullo store o appeal accolto
+    freedom-pardoned: "&a✓ Il tuo ban e' stato rimosso: sei libero!"
+    # Testo del kick dopo la liberazione
+    kick-released: "&a✓ Sei libero!\n&7La tua pena e' terminata, puoi rientrare nel server."
+    ban-time-remaining: "&cTempo residuo: {time}"
+    jail-credits: "&bJail Credits: {credits}/{required}"
+    # Mostrato solo quando la soglia di blocchi viene raggiunta
+    credit-earned: "&b✦ &fHai guadagnato &b+{amount} jail credit&f! &7({credits}/{required} &8- {blocks} blocchi scavati&7)"
+    only-coal: "&cPuoi scavare solo il &8coal_ore&c, nessun altro blocco."
+    no-place: "&cNon puoi piazzare blocchi in prigione."
+    no-pvp: "&cIl PvP e' disabilitato in prigione."
+    pickaxe-locked: "&cTi serve il piccone per scontare la pena."
+    command-blocked: "&cComando non disponibile in prigione. Consentiti: &7{commands}"
+    pickaxe-given: "&aUn amministratore ti ha consegnato il piccone del detenuto."
+    help-disabled: "&cLa guida non e' disponibile su questo server."
+    # Valori usati per {time} e {reason} quando il giocatore non e' detenuto
+    no-sentence-time: "nessuna pena"
+    no-sentence-reason: "nessuna pena"
